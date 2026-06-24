@@ -2,6 +2,14 @@
 
 ## 1. System Design
 
+What Actions Should Users Be Able to Perform:
+1. Add or Remove Pet Entries 
+2. Edit Pet and User Information
+3. Add or Remove Tasks
+4. Edit Task Information and Duration
+5. Create and/or Remove Schedules
+6. Edit Schedules/Plans
+
 **a. Initial design**
 
 - Briefly describe your initial UML design.
@@ -11,6 +19,8 @@
 
 - Did your design change during implementation?
 - If yes, describe at least one change and why you made it.
+
+
 
 ---
 
