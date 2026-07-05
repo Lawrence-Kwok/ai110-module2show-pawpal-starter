@@ -10,6 +10,12 @@ What Actions Should Users Be Able to Perform:
 5. Create and/or Remove Schedules
 6. Edit Schedules/Plans
 
+What Entities Need to Exist:
+1. Pets
+2. Owners
+3. Tasks
+4. Schedules
+
 **a. Initial design**
 
 - Briefly describe your initial UML design.

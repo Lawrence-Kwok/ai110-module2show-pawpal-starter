@@ -2,14 +2,50 @@ classDiagram
     %% Replace the placeholders below with your actual classes, attributes, methods, and relationships.
     %% Keep this file updated so it matches your final implementation.
 
-    class ClassName {
-        +type attribute
-        +method() returnType
+    %% class ClassName {
+    %%    +type attribute
+    %%    +method() returnType
+    %% }
+
+    %% class AnotherClass {
+    %%    +type attribute
+    %%    +method() returnType
+    %% }
+
+    %% ClassName --> AnotherClass : relationship
+
+    class Owner {
+        +str name
+        list~Pet~ pets
+        +str preferences 
+        +add_pet(pet)
+        +remove_pet(pet) 
     }
 
-    class AnotherClass {
-        +type attribute
-        +method() returnType
+    class Pet {
+        +str name
+        +str gender
+        +str breed
+        list~Task~ tasks
+        +add_task(Task)
+        +remove_task(Task)
     }
 
-    ClassName --> AnotherClass : relationship
+    class Task {
+        +str description
+        +str priority
+        +bool status
+        +int duration
+        +mark_complete()
+        +edit_description()
+    }
+
+    class Scheduler {
+        +retrieve_schedule()
+        +generate_schedule()
+    }
+
+    Owner "1" *-- "1..*" Pet : owns
+    Owner "1" --> "1" Scheduler : has
+    Pet "1" --> "0..*" Task : has
+    Scheduler "1" --> "0..*" Task : has
