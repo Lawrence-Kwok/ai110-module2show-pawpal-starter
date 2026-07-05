@@ -18,15 +18,14 @@ What Entities Need to Exist:
 
 **a. Initial design**
 
-- Briefly describe your initial UML design.
-- What classes did you include, and what responsibilities did you assign to each?
+As part of the initial design, the base 4 classes were included: Owner, Pet, Task, and the Scheduler. For the first three, each functioned as entities with their own properties, where the owner has a list of pets that they could have ownership over and pets with a list of tasks associated with them. In terms of responsibilities, tasks are the inherent basic entity which the entire project is dependent on, containing the information of importance, length, and status in order to be organized into the schedule for the owner. Pets also contain their own inherent traits to be used in other tasks should they be deemed relevant. Owner while not containing much beyond the list of pets, have a unique field for containing the owners perferences to add context for the scheduler to use.
 
 **b. Design changes**
 
 - Did your design change during implementation?
 - If yes, describe at least one change and why you made it.
 
-
+One change suggested during the skeleton implementation is adding a field for time availability for the owner, which was overlooked in the initial iteration. 
 
 ---
 
