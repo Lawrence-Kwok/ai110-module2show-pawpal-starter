@@ -1,19 +1,27 @@
 from dataclasses import dataclass, field
-from typing import List
+from typing import List, Optional
+
+
+@dataclass
+class AvailabilityWindow:
+    start_time: str   # example: "07:00"
+    end_time: str     # example: "08:00"
 
 
 @dataclass
 class Task:
     description: str
     priority: str
-    duration: int
+    duration_minutes: int
+    frequency: str
+    preferred_window: Optional[str] = None   # "morning", "afternoon", "evening"
     status: bool = False
 
     def mark_complete(self) -> None:
-        pass
+        self.status = True
 
     def edit_description(self, new_description: str) -> None:
-        pass
+        self.description = new_description
 
 
 @dataclass
@@ -24,24 +32,34 @@ class Pet:
     tasks: List[Task] = field(default_factory=list)
 
     def add_task(self, task: Task) -> None:
-        pass
+        if task not in self.tasks:
+            self.tasks.append(task)
 
     def remove_task(self, task: Task) -> None:
-        pass
+        if task in self.tasks:
+            self.tasks.remove(task)
 
 
 @dataclass
 class Owner:
     name: str
     preferences: str
-    available_minutes: int
+    availability_windows: List[AvailabilityWindow] = field(default_factory=list)
     pets: List[Pet] = field(default_factory=list)
 
     def add_pet(self, pet: Pet) -> None:
-        pass
+        if pet not in self.pets:
+            self.pets.append(pet)
 
     def remove_pet(self, pet: Pet) -> None:
-        pass
+        if pet in self.pets:
+            self.pets.remove(pet)
+
+    def get_all_tasks(self) -> List[Task]:
+        all_tasks = []
+        for pet in self.pets:
+            all_tasks.extend(pet.tasks)
+        return all_tasks
 
 
 @dataclass
