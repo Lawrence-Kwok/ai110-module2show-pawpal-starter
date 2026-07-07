@@ -1,8 +1,12 @@
+from datetime import time
+
 import streamlit as st
-from pawpal_system import Pet, Task, Owner
+from pawpal_system import AvailabilityWindow, Pet, Task, Owner, Scheduler
 
 if "owner" not in st.session_state:
     st.session_state.owner = Owner(name="", preferences="")
+if "scheduler" not in st.session_state:
+    st.session_state.scheduler = Scheduler()
 
 st.set_page_config(page_title="PawPal+", page_icon="🐾", layout="centered")
 
@@ -79,13 +83,15 @@ selected_pet_label = None
 if pet_options:
     selected_pet_label = st.selectbox("Assign task to pet", list(pet_options.keys()))
 
-col1, col2, col3 = st.columns(3)
+col1, col2, col3, col4 = st.columns(4)
 with col1:
     task_title = st.text_input("Task title", value="Morning walk")
 with col2:
     duration = st.number_input("Duration (minutes)", min_value=1, max_value=240, value=20)
 with col3:
     priority = st.selectbox("Priority", ["low", "medium", "high"], index=2)
+with col4:
+    scheduled_time = st.time_input("Scheduled time (optional)", value=None)
 
 if st.button("Add task"):
     if selected_pet_label is None:
@@ -96,6 +102,7 @@ if st.button("Add task"):
             priority=priority,
             duration_minutes=int(duration),
             frequency="daily",
+            scheduled_time=scheduled_time.strftime("%H:%M") if scheduled_time else None,
         )
         pet_options[selected_pet_label].add_task(task)
 
@@ -105,6 +112,7 @@ all_tasks = [
         "title": task.description,
         "duration_minutes": task.duration_minutes,
         "priority": task.priority,
+        "scheduled_time": task.scheduled_time or "auto",
     }
     for pet in st.session_state.owner.pets
     for task in pet.tasks
@@ -119,19 +127,46 @@ else:
 st.divider()
 
 st.subheader("Build Schedule")
-st.caption("This button should call your scheduling logic once you implement it.")
+st.caption("Auto-packed tasks (no scheduled time) are fit into this availability window.")
+
+window_col1, window_col2 = st.columns(2)
+with window_col1:
+    window_start = st.time_input("Availability start", value=time(7, 0))
+with window_col2:
+    window_end = st.time_input("Availability end", value=time(8, 0))
 
 if st.button("Generate schedule"):
-    st.warning(
-        "Not implemented yet. Next step: create your scheduling logic (classes/functions) and call it here."
-    )
-    st.markdown(
-        """
-Suggested approach:
-1. Design your UML (draft).
-2. Create class stubs (no logic).
-3. Implement scheduling behavior.
-4. Connect your scheduler here and display results.
-"""
-    )
+    st.session_state.owner.availability_windows = [
+        AvailabilityWindow(
+            start_time=window_start.strftime("%H:%M"),
+            end_time=window_end.strftime("%H:%M"),
+        )
+    ]
+    scheduler = st.session_state.scheduler
+    schedule = scheduler.generate_schedule(st.session_state.owner)
+    schedule = scheduler.sort_by_time()
+
+    if not schedule:
+        st.info("No tasks fit in the available time windows.")
+    else:
+        st.write("Generated schedule:")
+        st.table(
+            [
+                {
+                    "start_time": scheduled_task.start_time,
+                    "end_time": scheduled_task.end_time,
+                    "pet": scheduled_task.pet.name,
+                    "task": scheduled_task.task.description,
+                    "priority": scheduled_task.task.priority,
+                }
+                for scheduled_task in schedule
+            ]
+        )
+
+    conflicts = scheduler.detect_conflicts()
+    if conflicts:
+        for warning in conflicts:
+            st.warning(warning)
+    else:
+        st.success("No scheduling conflicts detected.")
 

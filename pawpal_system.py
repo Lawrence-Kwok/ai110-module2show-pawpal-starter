@@ -64,6 +64,8 @@ class Task:
             return True
         if self.frequency == "weekly" and schedule_type == "weekly":
             return True
+        if self.frequency == "one-off":
+            return True
         return False
 
 
