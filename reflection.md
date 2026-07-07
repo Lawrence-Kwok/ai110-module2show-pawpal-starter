@@ -42,10 +42,8 @@ is considered.
 
 **b. Tradeoffs**
 
-A tradeoff the scheduler makes is not scheduling any tasks that already fill in a time period that exists. This tradeoff
-make sense since you cannot have two tasks running at the same time. This may be addressed in the future if multiple individuals
-can be implemented in the scheduling system for parallel task management.
-
+A tradeoff the scheduler makes is scheduling by priority first by default; this makes sense since normally tasks are not of equal importance, and tasks that are important
+should be handled first rather than just slotting as first come first serve by time.
 
 ---
 

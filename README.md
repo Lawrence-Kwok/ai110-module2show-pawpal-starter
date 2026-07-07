@@ -72,10 +72,10 @@ Sample test output:
 
 | Feature | Method(s) | Notes |
 |---------|-----------|-------|
-| Task sorting | | e.g., by priority, duration |
-| Filtering | | e.g., skip tasks if time runs out |
-| Conflict handling | | e.g., overlapping time slots |
-| Recurring tasks | | e.g., daily vs. weekly |
+| Task sorting | `Scheduler.generate_schedule` | Auto-pack tasks are sorted by priority (high → medium → low), then by shorter duration first, before being fit into the owner's availability windows. |
+| Filtering | `Task.is_due_for`, `Pet.get_incomplete_tasks`, `Owner.get_all_incomplete_tasks` | Only incomplete tasks due for the requested schedule type ("daily"/"weekly"/"one-off") are considered candidates; tasks that no longer fit in a window's remaining time are pushed to `unscheduled_tasks` and skipped. |
+| Conflict handling | `Scheduler.detect_conflicts` | After a schedule is generated, a pairwise (O(n²)) check compares every pair of `ScheduledTask` start/end times and reports human-readable overlap warnings (does not prevent the overlap, just flags it). |
+| Recurring tasks | `Task.next_occurrence`, `Task.mark_complete`, `Pet.mark_task_complete` | Completing a "daily" or "weekly" task automatically creates and re-adds a new `Task` for the next due date; one-off tasks return `None` and are not recreated. |
 
 ## 📸 Demo Walkthrough
 
