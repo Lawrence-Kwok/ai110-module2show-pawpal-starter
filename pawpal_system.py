@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from datetime import date, timedelta
 from typing import List, Optional
 
 
@@ -16,14 +17,40 @@ class Task:
     frequency: str
     preferred_window: Optional[str] = None
     status: bool = False
+    due_date: Optional[date] = None
+    scheduled_time: Optional[str] = None
 
-    def mark_complete(self) -> None:
-        """Mark the task as completed."""
+    def mark_complete(self) -> Optional["Task"]:
+        """Mark the task as completed.
+
+        If the task recurs ("daily" or "weekly"), return a new Task instance
+        for the next occurrence so it can be re-added to the pet's task list.
+        """
         self.status = True
+        return self.next_occurrence()
 
     def mark_incomplete(self) -> None:
         """Mark the task as not completed."""
         self.status = False
+
+    def next_occurrence(self) -> Optional["Task"]:
+        """Return a new Task for the next due date, or None if not recurring."""
+        if self.frequency == "daily":
+            next_due_date = (self.due_date or date.today()) + timedelta(days=1)
+        elif self.frequency == "weekly":
+            next_due_date = (self.due_date or date.today()) + timedelta(weeks=1)
+        else:
+            return None
+
+        return Task(
+            description=self.description,
+            priority=self.priority,
+            duration_minutes=self.duration_minutes,
+            frequency=self.frequency,
+            preferred_window=self.preferred_window,
+            due_date=next_due_date,
+            scheduled_time=self.scheduled_time,
+        )
 
     def edit_description(self, new_description: str) -> None:
         """Update the task description."""
@@ -72,6 +99,17 @@ class Pet:
     def get_incomplete_tasks(self) -> List[Task]:
         """Return the pet's tasks that are not yet completed."""
         return [task for task in self.tasks if not task.status]
+
+    def mark_task_complete(self, task: Task) -> Optional[Task]:
+        """Mark a task complete and add its next occurrence, if any.
+
+        Returns the newly created Task for the next occurrence, or None if
+        the task does not recur.
+        """
+        next_task = task.mark_complete()
+        if next_task is not None:
+            self.add_task(next_task)
+        return next_task
 
 
 @dataclass
@@ -151,15 +189,35 @@ class Scheduler:
 
         priority_order = {"high": 0, "medium": 1, "low": 2}
 
-        due_tasks.sort(
+        scheduled_tasks = []
+
+        fixed_time_tasks = [task for task in due_tasks if task.scheduled_time is not None]
+        auto_pack_tasks = [task for task in due_tasks if task.scheduled_time is None]
+
+        for task in fixed_time_tasks:
+            task_pet = pet if pet is not None else owner.find_pet_for_task(task)
+            if task_pet is None:
+                continue
+
+            task_start = self._time_to_minutes(task.scheduled_time)
+            task_end = task_start + task.duration_minutes
+            scheduled_tasks.append(
+                ScheduledTask(
+                    pet=task_pet,
+                    task=task,
+                    start_time=task.scheduled_time,
+                    end_time=self._minutes_to_time(task_end),
+                )
+            )
+
+        auto_pack_tasks.sort(
             key=lambda task: (
                 priority_order.get(task.priority.lower(), 99),
                 task.duration_minutes,
             )
         )
 
-        scheduled_tasks = []
-        remaining_tasks = due_tasks.copy()
+        remaining_tasks = auto_pack_tasks.copy()
 
         for window in owner.availability_windows:
             current_time = self._time_to_minutes(window.start_time)
@@ -201,6 +259,58 @@ class Scheduler:
         self.scheduled_tasks = scheduled_tasks
         return self.retrieve_schedule()
 
+    def detect_conflicts(self) -> List[str]:
+        """Return warning messages for any scheduled tasks whose times overlap.
+
+        This is a lightweight, quadratic pairwise check over the current
+        scheduled_tasks list. It never raises; it just reports overlaps
+        (same pet or different pets) as human-readable warning strings.
+        """
+        warnings = []
+        entries = self.scheduled_tasks
+
+        for i in range(len(entries)):
+            for j in range(i + 1, len(entries)):
+                first = entries[i]
+                second = entries[j]
+
+                first_start = self._time_to_minutes(first.start_time)
+                first_end = self._time_to_minutes(first.end_time)
+                second_start = self._time_to_minutes(second.start_time)
+                second_end = self._time_to_minutes(second.end_time)
+
+                overlaps = first_start < second_end and second_start < first_end
+                if not overlaps:
+                    continue
+
+                warnings.append(
+                    f"Conflict: {first.pet.name}'s '{first.task.description}' "
+                    f"({first.start_time}-{first.end_time}) overlaps with "
+                    f"{second.pet.name}'s '{second.task.description}' "
+                    f"({second.start_time}-{second.end_time})."
+                )
+
+        return warnings
+
+    def sort_by_time(self) -> List[ScheduledTask]:
+        """Sort the scheduled tasks in place by their start time (HH:MM)."""
+        self.scheduled_tasks.sort(key=lambda scheduled_task: self._time_to_minutes(scheduled_task.start_time))
+        return self.retrieve_schedule()
+
+    def filter_by_status(self, completed: bool) -> List[ScheduledTask]:
+        """Return scheduled tasks whose task completion status matches."""
+        return [
+            scheduled_task for scheduled_task in self.scheduled_tasks
+            if scheduled_task.task.status == completed
+        ]
+
+    def filter_by_pet(self, pet_name: str) -> List[ScheduledTask]:
+        """Return scheduled tasks belonging to the pet with the given name."""
+        return [
+            scheduled_task for scheduled_task in self.scheduled_tasks
+            if scheduled_task.pet.name == pet_name
+        ]
+
     def explain_schedule(self) -> str:
         """Explain why each scheduled task was included in the plan."""
         if not self.scheduled_tasks:
@@ -217,3 +327,18 @@ class Scheduler:
             )
 
         return "\n".join(explanations)
+
+
+def print_schedule(entries: List[ScheduledTask]) -> None:
+    """Print a list of scheduled tasks, or a message if there are none."""
+    if not entries:
+        print("No tasks fit in the available time windows.")
+        return
+
+    for scheduled_task in entries:
+        task = scheduled_task.task
+        print(
+            f"{scheduled_task.start_time}-{scheduled_task.end_time} | "
+            f"{scheduled_task.pet.name}: {task.description} "
+            f"({task.duration_minutes} min, {task.priority} priority)"
+        )

@@ -1,9 +1,10 @@
-from diagrams.pawpal_system import (
+from pawpal_system import (
 	AvailabilityWindow,
 	Owner,
 	Pet,
 	Scheduler,
 	Task,
+	print_schedule,
 )
 
 def build_sample_schedule() -> None:
@@ -45,31 +46,53 @@ def build_sample_schedule() -> None:
 		priority="low",
 		duration_minutes=20,
 		frequency="daily",
+		scheduled_time="07:00",
 	)
-	grooming.mark_complete()
-
-	gummi.add_task(morning_walk)
-	gummi.add_task(breakfast)
+	nail_trim = Task(
+		description="Nail trim",
+		priority="high",
+		duration_minutes=15,
+		frequency="daily",
+		scheduled_time="07:00",
+	)
+	# Tasks are added out of order on purpose to exercise sort_by_time().
+	mocha.add_task(nail_trim)
 	mocha.add_task(medication)
+	gummi.add_task(breakfast)
 	mocha.add_task(grooming)
+	gummi.add_task(morning_walk)
 
 	scheduler = Scheduler()
 	schedule = scheduler.generate_schedule(owner)
 
-	print("Today's Schedule")
-	print("-" * 16)
+	print("Today's Schedule (generated order)")
+	print("-" * 34)
+	print_schedule(schedule)
 
-	if not schedule:
-		print("No tasks fit in the available time windows.")
-		return
+	print("\nToday's Schedule (sorted by time)")
+	print("-" * 34)
+	print_schedule(scheduler.sort_by_time())
 
-	for scheduled_task in schedule:
-		task = scheduled_task.task
-		print(
-			f"{scheduled_task.start_time}-{scheduled_task.end_time} | "
-			f"{scheduled_task.pet.name}: {task.description} "
-			f"({task.duration_minutes} min, {task.priority} priority)"
-		)
+	print("\nIncomplete Tasks Only")
+	print("-" * 34)
+	print_schedule(scheduler.filter_by_status(completed=False))
+
+	print("\nCompleted Tasks Only")
+	print("-" * 34)
+	print_schedule(scheduler.filter_by_status(completed=True))
+
+	print("\nTasks for Mocha")
+	print("-" * 34)
+	print_schedule(scheduler.filter_by_pet("Mocha"))
+
+	print("\nSchedule Conflicts")
+	print("-" * 34)
+	conflicts = scheduler.detect_conflicts()
+	if not conflicts:
+		print("No conflicts detected.")
+	else:
+		for warning in conflicts:
+			print(warning)
 
 
 if __name__ == "__main__":
