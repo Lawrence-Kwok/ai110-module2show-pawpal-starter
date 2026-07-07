@@ -33,13 +33,19 @@ One change suggested during the skeleton implementation is adding a field for ti
 
 **a. Constraints and priorities**
 
-- What constraints does your scheduler consider (for example: time, priority, preferences)?
-- How did you decide which constraints mattered most?
+The constraints that the scheduler is considering is time in HH:MM format and priority. Preferences hasn't been applied
+as of the time of posting which maybe improved in future iterations. Time and priority were considered most since those
+were the most deterministic of the three, with preference requiring more thinking in the future for implementation (whether
+it is a deterministic task or if it supersedes priority). With the other two its more black and white in terms of determination
+with either the tasks cannot co-exist or if the task has been assigned the appropriate order of priority. Priority and then time
+is considered.
 
 **b. Tradeoffs**
 
-- Describe one tradeoff your scheduler makes.
-- Why is that tradeoff reasonable for this scenario?
+A tradeoff the scheduler makes is not scheduling any tasks that already fill in a time period that exists. This tradeoff
+make sense since you cannot have two tasks running at the same time. This may be addressed in the future if multiple individuals
+can be implemented in the scheduling system for parallel task management.
+
 
 ---
 
