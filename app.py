@@ -4,12 +4,6 @@ from pawpal_system import Pet, Task, Owner
 if "owner" not in st.session_state:
     st.session_state.owner = Owner(name="", preferences="")
 
-if "pet" not in st.session_state:
-    st.session_state.pet = Pet(name="", gender="unknown", breed="dog")
-
-if st.session_state.pet not in st.session_state.owner.pets:
-    st.session_state.owner.add_pet(st.session_state.pet)
-
 st.set_page_config(page_title="PawPal+", page_icon="🐾", layout="centered")
 
 st.title("🐾 PawPal+")
@@ -48,16 +42,42 @@ At minimum, your system should:
 
 st.divider()
 
-st.subheader("Quick Demo Inputs (UI only)")
-owner_name = st.text_input("Owner name", value="Jordan")
+st.subheader("Add a new pet")
+owner_name = st.text_input(
+    "Owner name",
+    value=st.session_state.owner.name or "Jordan",
+)
 pet_name = st.text_input("Pet name", value="Mochi")
 species = st.selectbox("Species", ["dog", "cat", "other"])
+gender = st.selectbox("Gender", ["male", "female", "other"])
+st.session_state.owner.name = owner_name
+
+if st.button("Add pet"):
+    new_pet = Pet(name=pet_name, gender=gender, breed=species)
+    st.session_state.owner.add_pet(new_pet)
+
+if st.session_state.owner.pets:
+    st.write("Current pets:")
+    st.table(
+        [
+            {"name": pet.name, "breed": pet.breed, "gender": pet.gender}
+            for pet in st.session_state.owner.pets
+        ]
+    )
+else:
+    st.info("No pets yet. Add one above.")
 
 st.markdown("### Tasks")
 st.caption("Add a few tasks. In your final version, these should feed into your scheduler.")
 
-if "tasks" not in st.session_state:
-    st.session_state.tasks = []
+pet_options = {
+    f"{index + 1}. {pet.name} ({pet.breed})": pet
+    for index, pet in enumerate(st.session_state.owner.pets)
+}
+
+selected_pet_label = None
+if pet_options:
+    selected_pet_label = st.selectbox("Assign task to pet", list(pet_options.keys()))
 
 col1, col2, col3 = st.columns(3)
 with col1:
@@ -68,26 +88,31 @@ with col3:
     priority = st.selectbox("Priority", ["low", "medium", "high"], index=2)
 
 if st.button("Add task"):
-    task = Task(
-        description=task_title,
-        priority=priority,
-        duration_minutes=int(duration),
-        frequency="daily",
-    )
-    st.session_state.pet.add_task(task)
+    if selected_pet_label is None:
+        st.warning("Add a pet before adding tasks.")
+    else:
+        task = Task(
+            description=task_title,
+            priority=priority,
+            duration_minutes=int(duration),
+            frequency="daily",
+        )
+        pet_options[selected_pet_label].add_task(task)
 
-if st.session_state.pet.tasks:
+all_tasks = [
+    {
+        "pet": pet.name,
+        "title": task.description,
+        "duration_minutes": task.duration_minutes,
+        "priority": task.priority,
+    }
+    for pet in st.session_state.owner.pets
+    for task in pet.tasks
+]
+
+if all_tasks:
     st.write("Current tasks:")
-    st.table(
-        [
-            {
-                "title": task.description,
-                "duration_minutes": task.duration_minutes,
-                "priority": task.priority,
-            }
-            for task in st.session_state.pet.tasks
-        ]
-    )
+    st.table(all_tasks)
 else:
     st.info("No tasks yet. Add one above.")
 
@@ -110,6 +135,3 @@ Suggested approach:
 """
     )
 
-st.session_state.owner.name = owner_name
-st.session_state.pet.name = pet_name
-st.session_state.pet.breed = species
