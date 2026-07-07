@@ -52,19 +52,43 @@ Today's Schedule
 
 ## 🧪 Testing PawPal+
 
-```bash
-# Run the full test suite:
-pytest
+Run the test suite from the project root with:
 
-# Run with coverage:
-pytest --cov
+```bash
+python -m pytest
 ```
+
+The suite (`tests/test_pawpal.py`) covers the following scheduling behaviors:
+
+- **Task completion** — marking a task complete sets its status correctly.
+- **Recurrence logic** — completing a "daily" task creates a new, incomplete `Task` instance due the following day with the same description, priority, duration, and frequency.
+- **Pet task management** — adding a task to a `Pet` increases its task count.
+- **Chronological sorting** — `Scheduler.sort_by_time` orders scheduled tasks by start time regardless of the order they were added.
+- **Conflict detection** — `Scheduler.detect_conflicts` flags overlapping scheduled times across different pets, and correctly ignores back-to-back tasks that touch but don't overlap (boundary case).
 
 Sample test output:
 
 ```
-# Paste your pytest output here
+============================= test session starts ==============================
+platform darwin -- Python 3.10.7, pytest-9.0.3, pluggy-1.6.0 -- /usr/local/bin/python3
+cachedir: .pytest_cache
+rootdir: /Users/lawrence/Documents/GitHub/ai110-module2show-pawpal-starter
+plugins: anyio-4.0.0
+collecting ... collected 6 items
+
+tests/test_pawpal.py::test_mark_complete_sets_task_status_to_true PASSED [ 16%]
+tests/test_pawpal.py::test_add_task_increases_pet_task_count PASSED      [ 33%]
+tests/test_pawpal.py::test_sort_by_time_orders_tasks_chronologically PASSED [ 50%]
+tests/test_pawpal.py::test_mark_complete_on_daily_task_creates_next_day_occurrence PASSED [ 66%]
+tests/test_pawpal.py::test_detect_conflicts_flags_overlapping_scheduled_times PASSED [ 83%]
+tests/test_pawpal.py::test_detect_conflicts_ignores_back_to_back_non_overlapping_times PASSED [100%]
+
+============================== 6 passed in 0.01s ===============================
 ```
+
+**Confidence Level:** ⭐⭐☆☆☆ (2/5)
+
+All 6 tests pass, and the bare minimum recurrence, sorting, and conflict-detection logic. However, coverage isn't comprehensive enough with the dropping tasks that don't fit, putting behavior into correct windows, and other edge cases that are still to be determined.
 
 ## 📐 Smarter Scheduling
 
