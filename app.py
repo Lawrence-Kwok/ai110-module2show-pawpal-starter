@@ -1,6 +1,15 @@
 import streamlit as st
 from pawpal_system import Pet, Task, Owner
 
+if "owner" not in st.session_state:
+    st.session_state.owner = Owner(name="", preferences="")
+
+if "pet" not in st.session_state:
+    st.session_state.pet = Pet(name="", gender="unknown", breed="dog")
+
+if st.session_state.pet not in st.session_state.owner.pets:
+    st.session_state.owner.add_pet(st.session_state.pet)
+
 st.set_page_config(page_title="PawPal+", page_icon="🐾", layout="centered")
 
 st.title("🐾 PawPal+")
@@ -59,13 +68,26 @@ with col3:
     priority = st.selectbox("Priority", ["low", "medium", "high"], index=2)
 
 if st.button("Add task"):
-    st.session_state.tasks.append(
-        {"title": task_title, "duration_minutes": int(duration), "priority": priority}
+    task = Task(
+        description=task_title,
+        priority=priority,
+        duration_minutes=int(duration),
+        frequency="daily",
     )
+    st.session_state.pet.add_task(task)
 
-if st.session_state.tasks:
+if st.session_state.pet.tasks:
     st.write("Current tasks:")
-    st.table(st.session_state.tasks)
+    st.table(
+        [
+            {
+                "title": task.description,
+                "duration_minutes": task.duration_minutes,
+                "priority": task.priority,
+            }
+            for task in st.session_state.pet.tasks
+        ]
+    )
 else:
     st.info("No tasks yet. Add one above.")
 
@@ -87,3 +109,7 @@ Suggested approach:
 4. Connect your scheduler here and display results.
 """
     )
+
+st.session_state.owner.name = owner_name
+st.session_state.pet.name = pet_name
+st.session_state.pet.breed = species
