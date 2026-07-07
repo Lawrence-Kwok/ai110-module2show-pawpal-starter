@@ -1,4 +1,4 @@
-from diagrams.pawpal_system import Pet, Task
+from pawpal_system import Pet, Task
 
 
 def test_mark_complete_sets_task_status_to_true() -> None:
