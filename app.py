@@ -74,17 +74,28 @@ if st.button("Add task"):
         )
         pet_options[selected_pet_label].add_task(task)
 
-all_tasks = [
-    {
-        "pet": pet.name,
-        "title": task.description,
-        "duration_minutes": task.duration_minutes,
-        "priority": task.priority,
-        "scheduled_time": task.scheduled_time or "auto",
-    }
+priority_order = {"high": 0, "medium": 1, "low": 2}
+
+all_tasks_with_sort_keys = [
+    (
+        (
+            0 if task.scheduled_time else 1,
+            task.scheduled_time or "",
+            priority_order.get(task.priority.lower(), 99),
+        ),
+        {
+            "pet": pet.name,
+            "title": task.description,
+            "duration_minutes": task.duration_minutes,
+            "priority": task.priority,
+            "scheduled_time": task.scheduled_time or "auto",
+        },
+    )
     for pet in st.session_state.owner.pets
     for task in pet.tasks
 ]
+all_tasks_with_sort_keys.sort(key=lambda entry: entry[0])
+all_tasks = [row for _, row in all_tasks_with_sort_keys]
 
 if all_tasks:
     st.write("Current tasks:")
@@ -111,30 +122,48 @@ if st.button("Generate schedule"):
         )
     ]
     scheduler = st.session_state.scheduler
-    schedule = scheduler.generate_schedule(st.session_state.owner)
-    schedule = scheduler.sort_by_time()
+    scheduler.generate_schedule(st.session_state.owner)
+    scheduler.sort_by_time()
+    st.session_state.schedule_generated = True
+
+if st.session_state.get("schedule_generated"):
+    scheduler = st.session_state.scheduler
+    schedule = scheduler.retrieve_schedule()
+
+    conflicts = scheduler.detect_conflicts()
+    if conflicts:
+        st.markdown("#### ⚠️ Conflicts")
+        for warning in conflicts:
+            st.warning(warning)
 
     if not schedule:
         st.info("No tasks fit in the available time windows.")
     else:
-        st.write("Generated schedule:")
-        st.table(
-            [
-                {
-                    "start_time": scheduled_task.start_time,
-                    "end_time": scheduled_task.end_time,
-                    "pet": scheduled_task.pet.name,
-                    "task": scheduled_task.task.description,
-                    "priority": scheduled_task.task.priority,
-                }
-                for scheduled_task in schedule
-            ]
-        )
+        pet_filter_options = ["All pets"] + [pet.name for pet in st.session_state.owner.pets]
+        pet_filter = st.selectbox("Filter schedule by pet", pet_filter_options)
 
-    conflicts = scheduler.detect_conflicts()
-    if conflicts:
-        for warning in conflicts:
-            st.warning(warning)
-    else:
+        if pet_filter == "All pets":
+            filtered_schedule = schedule
+        else:
+            filtered_schedule = scheduler.filter_by_pet(pet_filter)
+
+        st.markdown("#### Generated schedule")
+        if not filtered_schedule:
+            st.info(f"No scheduled tasks for {pet_filter}.")
+        else:
+            st.table(
+                [
+                    {
+                        "start_time": scheduled_task.start_time,
+                        "end_time": scheduled_task.end_time,
+                        "pet": scheduled_task.pet.name,
+                        "task": scheduled_task.task.description,
+                        "priority": scheduled_task.task.priority,
+                    }
+                    for scheduled_task in filtered_schedule
+                ]
+            )
+
+    if not conflicts:
         st.success("No scheduling conflicts detected.")
 
