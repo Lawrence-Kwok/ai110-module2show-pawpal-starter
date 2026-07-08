@@ -1,0 +1,74 @@
+classDiagram
+
+    class AvailabilityWindow {
+        +str start_time
+        +str end_time
+    }
+
+    class Task {
+        +str description
+        +str priority
+        +int duration_minutes
+        +str frequency
+        +str preferred_window
+        +bool status
+        +date due_date
+        +str scheduled_time
+        +mark_complete() Task
+        +mark_incomplete()
+        +next_occurrence() Task
+        +edit_description(new_description)
+        +is_due_for(schedule_type) bool
+    }
+
+    class Pet {
+        +str name
+        +str gender
+        +str breed
+        list~Task~ tasks
+        +add_task(task)
+        +remove_task(task)
+        +get_tasks() List~Task~
+        +get_incomplete_tasks() List~Task~
+        +mark_task_complete(task) Task
+    }
+
+    class Owner {
+        +str name
+        +str preferences
+        list~AvailabilityWindow~ availability_windows
+        list~Pet~ pets
+        +add_pet(pet)
+        +remove_pet(pet)
+        +get_all_tasks() List~Task~
+        +get_all_incomplete_tasks() List~Task~
+        +find_pet_for_task(task) Pet
+    }
+
+    class ScheduledTask {
+        +Pet pet
+        +Task task
+        +str start_time
+        +str end_time
+    }
+
+    class Scheduler {
+        list~ScheduledTask~ scheduled_tasks
+        +retrieve_schedule() List~ScheduledTask~
+        +generate_schedule(owner, pet, schedule_type) List~ScheduledTask~
+        +detect_conflicts() List~str~
+        +sort_by_time() List~ScheduledTask~
+        +filter_by_status(completed) List~ScheduledTask~
+        +filter_by_pet(pet_name) List~ScheduledTask~
+        +explain_schedule() str
+        -_time_to_minutes(time_value) int
+        -_minutes_to_time(total_minutes) str
+    }
+
+    Owner "1" o-- "0..*" Pet : owns
+    Owner "1" *-- "0..*" AvailabilityWindow : has
+    Pet "1" o-- "0..*" Task : has
+    Scheduler "1" o-- "0..*" ScheduledTask : produces
+    ScheduledTask "1" --> "1" Pet : for
+    ScheduledTask "1" --> "1" Task : wraps
+    Scheduler ..> Owner : reads
