@@ -47,7 +47,9 @@ pip install -r requirements.txt
 Today's Schedule
 ----------------
 07:00-07:15 | Gummi: Breakfast feeding (15 min, high priority)
+
 07:15-07:45 | Gummi: Morning walk (30 min, high priority)
+
 07:45-07:55 | Mocha: Evening medication (10 min, medium priority)
 
 ## 🧪 Testing PawPal+
