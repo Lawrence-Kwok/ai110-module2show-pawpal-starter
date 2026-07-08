@@ -105,10 +105,11 @@ All 6 tests pass, and the bare minimum recurrence, sorting, and conflict-detecti
 
 Describe your app in numbered steps so a reader can follow along without watching a video:
 
-1. <!-- Describe this step -->
-2. <!-- Describe this step -->
-3. <!-- Describe this step -->
-4. <!-- Describe this step -->
-5. <!-- Add more steps as needed -->
+1. Create an entry for a pet with an owner
+2. Select pet to add task to 
+3. Fill out task information (scheduled time is optional, it will autoslot into
+available timeslots if available)
+4. Select window of availability (start, end)
+5. Generate schedule
+6. Click filter by pet to filter for a specific pet
 
-**Screenshot or video** *(optional)*: <!-- Insert a screenshot or link to a demo video here -->
