@@ -203,6 +203,15 @@ class Scheduler:
 
             task_start = self._time_to_minutes(task.scheduled_time)
             task_end = task_start + task.duration_minutes
+
+            fits_in_a_window = any(
+                task_start >= self._time_to_minutes(window.start_time)
+                and task_end <= self._time_to_minutes(window.end_time)
+                for window in owner.availability_windows
+            )
+            if not fits_in_a_window:
+                continue
+
             scheduled_tasks.append(
                 ScheduledTask(
                     pet=task_pet,

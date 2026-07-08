@@ -2,20 +2,6 @@
 
 ## 1. System Design
 
-What Actions Should Users Be Able to Perform:
-1. Add or Remove Pet Entries 
-2. Edit Pet and User Information
-3. Add or Remove Tasks
-4. Edit Task Information and Duration
-5. Create and/or Remove Schedules
-6. Edit Schedules/Plans
-
-What Entities Need to Exist:
-1. Pets
-2. Owners
-3. Tasks
-4. Schedules
-
 **a. Initial design**
 
 As part of the initial design, the base 4 classes were included: Owner, Pet, Task, and the Scheduler. For the first three, each functioned as entities with their own properties, where the owner has a list of pets that they could have ownership over and pets with a list of tasks associated with them. In terms of responsibilities, tasks are the inherent basic entity which the entire project is dependent on, containing the information of importance, length, and status in order to be organized into the schedule for the owner. Pets also contain their own inherent traits to be used in other tasks should they be deemed relevant. Owner while not containing much beyond the list of pets, have a unique field for containing the owners perferences to add context for the scheduler to use.
@@ -51,13 +37,15 @@ should be handled first rather than just slotting as first come first serve by t
 
 **a. How you used AI**
 
-- How did you use AI tools during this project (for example: design brainstorming, debugging, refactoring)?
-- What kinds of prompts or questions were most helpful?
+I used GPT 5.4 and Claude Sonnet 4.8 for the design, brainstorming and suggestions, debugging and refactoring in an attempt to be more agentic.
+Prompts that were more useful is describing what kind of task and which files are more useful to determine what the generated output should be and ensuring 
+that the generated code meets the requirements or correctly uses the methods from other files. 
 
 **b. Judgment and verification**
 
-- Describe one moment where you did not accept an AI suggestion as-is.
-- How did you evaluate or verify what the AI suggested?
+One moment that I didn't accept an AI suggestion as is when it decided to recreate
+rather than utilize the helper methods from the pawpal_system instead. I verified it by checking what redundant logic was created or if the logic was in the appropriate spot to be placed, and if it isn't, prompt the LLM to move the logic or methods to the appropriate locations.
+
 
 ---
 
@@ -65,13 +53,17 @@ should be handled first rather than just slotting as first come first serve by t
 
 **a. What you tested**
 
-- What behaviors did you test?
-- Why were these tests important?
+I tested the time based sorting, conflict, and task manipulation. These tests
+are important for verifying that methods used to run the logic of the system is 
+actually functioning as expected for the user to rely on, and as a result lead to the correct output for the user and/or providing more informed insights on the generated output (whether theres conflicts, etc).
 
 **b. Confidence**
 
-- How confident are you that your scheduler works correctly?
-- What edge cases would you test next if you had more time?
+I'm half confident in my scheduler working properly; currently there is a 
+behavior that was intentionally kept in to satisfy the conflict detection where
+multiple tasks that can be overlapping still can be added to tasks in order to 
+trigger the warning rather than outright prohibition of the tasks. I would also create more tests centering around the time period of the schedule generation and the priority for robustness.
+
 
 ---
 
